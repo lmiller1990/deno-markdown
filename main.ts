@@ -3,14 +3,16 @@
 const text =
 `# Title
 
-some \`inline code\`.
-\`testing\` \`inline\`
+Welcome to my blog. I wrote my own \`markdown\` to \`html\` compiler.
 
-\`\`\`
+It even supports code blocks:
+\`\`\`{2,5-10,15}
 function() {
   return 'code block';
 }
-\`\`\``
+\`\`\`
+
+See you next time.`
 
 type TokenType = 'h1' | 'triple-backtick' | 'text' | 'single-backtick' | 'whitespace' | 'cr' | 'EOF'
 
@@ -21,7 +23,7 @@ interface TokenMatch {
 
 const tokensMatches: TokenMatch[] = [
   { type: 'h1', regexp: /(.*?#)/ },
-  { type: 'cr', regexp: /(\n)/ },
+  { type: 'cr', regexp: /(\n)$/ },
   { type: 'triple-backtick', regexp: /^\s?(```)/ },
   { type: 'single-backtick', regexp: /^(\s?`)/ },
   { type: 'text', regexp: /(\s?.+?)/ },
@@ -63,6 +65,7 @@ function tokenize(text: string) {
     charTokens.push(token)
   }
 
+  charTokens.push({ type: 'cr', value: '' })
   charTokens.push({ type: 'EOF', value: '' })
   return charTokens
 }
@@ -79,6 +82,7 @@ interface HeaderNode {
 interface CodeBlockNode {
   type: 'code-block-node'
   text: string
+  highlight?: string
 }
 
 interface InlineCodeNode {
@@ -119,15 +123,25 @@ class Parser {
   parseCodeBlock(): CodeBlockNode {
     this.consume()
     let text = ''
+    let highlight: string | undefined = undefined
+    let firstPass = true
     while (!this.peek('triple-backtick')) {
       const charToken = this.consume()
-      text += charToken!.value
+
+      if (firstPass && charToken?.value.match(/^\{.*\}$/)) {
+        // it is the highlight lines. eg ```{1,2-3}
+        highlight = charToken.value.trim()
+      } else {
+        text += charToken!.value
+      }
+      firstPass = false
     }
     this.consume() // matching triple backtick
 
     return {
       type: 'code-block-node',
-      text
+      text: text.trimStart(),
+      highlight
     }
   }
 
@@ -206,11 +220,6 @@ class Parser {
         this.#nodes.push(node)
       }
 
-      // if (this.peek('single-backtick')) {
-      //   const node = this.parseInlineCodeNode()
-      //   this.#nodes.push(node)
-      // }
-
       if (this.peek('whitespace', 'cr')) {
         this.consume()
       }
@@ -246,7 +255,7 @@ function generate(nodes: ParsedNode[]) {
     }
 
     if (node.type === 'code-block-node') {
-      text += `<pre><code>\n`
+      text += `<pre data-line="${node.highlight}"><code>`
       text += `${node.text}`
       text += `</pre></code>\n`
     }
