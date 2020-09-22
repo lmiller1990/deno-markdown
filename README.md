@@ -6,6 +6,8 @@ The architecture is fairly simple:
 2. Parse (get AST)
 3. Code Gen
 
+You can run the tests with `deno test`.
+
 Supports:
 
 - links with `[blah blah](https://blah.com)`
