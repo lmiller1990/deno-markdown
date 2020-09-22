@@ -1,3 +1,5 @@
+# Welcome
+
 Welcome to my [new webstite](https://lachlan-miller.me). It supports `inline code` as well code blocks.
 
 ```

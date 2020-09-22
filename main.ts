@@ -14,10 +14,11 @@ for await (let line of readStringDelim(fileReader, "\n")) {
 fileReader.close();
 
 const tokens = tokenize(content);
-console.log("\n\nTokens:\n", tokens);
+// console.log("\n\nTokens:\n", tokens);
 
 const ast = new Parser(tokens).parse();
-console.log("\n\nAST:\n", ast);
+// console.log("\n\nAST:\n", ast);
 
 const output = generate(ast);
-console.log("\n\nOutput:\n", output);
+// console.log("\n\nOutput:\n", output);
+console.log(output)
