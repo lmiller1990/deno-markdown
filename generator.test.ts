@@ -7,14 +7,14 @@ Deno.test("generates paragraph text with italic", () => {
     {
       type: "paragraph-node",
       children: [
-        { type: "text-node", text: " Welcome" },
-        { type: "text-node", text: " to" },
-        { type: "text-node", text: " the " },
-        { type: "italic-node", text: "blog" },
+        { type: "text-node", text: "Welcome" },
+        { type: "text-node", text: "to" },
+        { type: "text-node", text: "the " },
+        { type: "italic-node", text:"blog" },
       ],
     },
   ];
-  const expected = `<p>Welcome to the <em>blog</em></p>`;
+  const expected = `<p>Welcome to the  <em>blog</em></p>`;
 
   const actual = generate(tree);
 

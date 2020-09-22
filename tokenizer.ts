@@ -14,6 +14,7 @@ export const tokensMatches: TokenMatch[] = [
   { type: "close-square-bracket", regexp: /(\])/ },
   { type: "open-circle-bracket", regexp: /(\()/ },
   { type: "close-circle-bracket", regexp: /(\))/ },
+  { type: "block-quote", regexp: /(\>)/ },
   { type: "asterisk", regexp: /(\*)/ },
   { type: "text", regexp: /(\s?.+?)/ },
   { type: "whitespace", regexp: /(\s)/ },
@@ -42,6 +43,7 @@ export function tokenize(text: string) {
     .flatMap((x) => x.split(/(\[)/))
     .flatMap((x) => x.split(/(\])/))
     .flatMap((x) => x.split(/(\()/))
+    .flatMap((x) => x.split(/(\>)/))
     .flatMap((x) => x.split(/(\))/))
     .flatMap((x) =>
       x.includes("```")

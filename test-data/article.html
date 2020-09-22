@@ -1,8 +1,7 @@
 <link rel="stylesheet" href="index.css">
 <h1> Patterns for Testing Props</h1><p>
 In  this  section  we  explore   <code>props</code>,  and  the  kinds  of  tests  you  might  want  to  consider  writing.  This  leads  into  a  much  more  fundamental  and  important  topic;  drawing  a  clear  line  between  business  logic  and  UI,  also  known  as   <em>separation of concerns</em>,  and  how  your  tests  can  help  make  this  distinction  clear. </p><p>
-Consider  one  of  the  big  ideas  behind  frameworks  like  Vue  and  React: </p><p>
->  UI  is  a  function  of  your  data </p><p>
+Consider  one  of  the  big  ideas  behind  frameworks  like  Vue  and  React: </p><blockquote> UI  is  a  function  of  your  data </blockquote><p>
 This  idea  comes  in  many  forms;  another  is  "data  driven  interfaces".  Basically,  your  UI  should  be  a  function  of  your  data.  Given  X  data,  your  UI  should  be  Y.  In  computer  science,  this  is  referred  to  as   <em>determinism</em>.  Another  name  for  this  a   <em>pure</em> system.  Take  the   <code>sum</code> function.  It  is  a   <em>pure</em> function: </p><pre data-line="undefined"><code>js
 function sum(a, b) {
   return a + b
@@ -68,8 +67,7 @@ props: {
   }
 }
 </pre></code><p>
-Now  we  will  get  an  error  if  an  invalid  prop  is  passed.  How  do  we  test  this?  If  we  want  to  cover  all  the  possibilities,  we  need  4  tests;  one  for  each   <code>variant</code> type,  and  one  for  an  invalid  type.  Unlike  our  previous  test,  where  we  asserted  against  the   <code>class</code>,  this  one  has  little  to  do  with  our  UI  -  we  already  have  a  test  checking  if  the   <code>variant</code> prop  is  bound  to  the   <code>&lt;div&gt;</code> correctly.   </p><p>
->  TIP:  Test  props  validators  in  isolation.  The  test  run  faster,  and  since  validators  are  generally  pure  functions,  they  are  easy  to  test. </p><p>
+Now  we  will  get  an  error  if  an  invalid  prop  is  passed.  How  do  we  test  this?  If  we  want  to  cover  all  the  possibilities,  we  need  4  tests;  one  for  each   <code>variant</code> type,  and  one  for  an  invalid  type.  Unlike  our  previous  test,  where  we  asserted  against  the   <code>class</code>,  this  one  has  little  to  do  with  our  UI  -  we  already  have  a  test  checking  if  the   <code>variant</code> prop  is  bound  to  the   <code>&lt;div&gt;</code> correctly.   </p><blockquote> TIP:  Test  props  validators  in  isolation.  The  test  run  faster,  and  since  validators  are  generally  pure  functions,  they  are  easy  to  test. </blockquote><p>
 First  we  need  to  refactor   <code>&lt;Message&gt;</code> a  little  to  separate  the  validator  from  the  component: </p><pre data-line="undefined"><code>html
 &lt;template&gt;
   &lt;div :class="variant"&gt;Message&lt;/div&gt;

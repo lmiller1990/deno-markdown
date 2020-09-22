@@ -1,7 +1,7 @@
 import { CharacterToken } from "./types.ts";
 import { ParsedNode, Parser } from "./parser.ts";
 import { assertEquals } from "https://deno.land/std@0.69.0/testing/asserts.ts";
-import { test } from './test-utils.ts'
+import { test } from "./test-utils.ts";
 
 test("parses header node", () => {
   const tokens: CharacterToken[] = [
@@ -134,7 +134,6 @@ test("replaces < and > with HTML safe alternatives in inline code", () => {
   assertEquals(actual, expected);
 });
 
-
 test("replaces < and > with HTML safe alternatives in code block", () => {
   const tokens: CharacterToken[] = [
     { type: "triple-backtick", value: "```" },
@@ -148,8 +147,32 @@ test("replaces < and > with HTML safe alternatives in code block", () => {
     {
       highlight: undefined,
       type: "code-block-node",
-      text: "&lt;button&gt;\n"
-    }
+      text: "&lt;button&gt;\n",
+    },
+  ];
+
+  const actual = new Parser(tokens).parse();
+
+  assertEquals(actual, expected);
+});
+
+test("parses block quote", () => {
+  const tokens: CharacterToken[] = [
+    { type: "block-quote", value: ">" },
+    { type: "text", value: " TIP: Something" },
+    { type: "cr", value: "" },
+    { type: "EOF", value: "" },
+  ];
+  const expected: ParsedNode[] = [
+    {
+      type: "block-quote-node",
+      children: [
+        {
+          type: "text-node",
+          text: " TIP: Something",
+        },
+      ],
+    },
   ];
 
   const actual = new Parser(tokens).parse();

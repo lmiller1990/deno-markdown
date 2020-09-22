@@ -4,7 +4,7 @@ In this section we explore `props`, and the kinds of tests you might want to con
 
 Consider one of the big ideas behind frameworks like Vue and React:
 
-> UI is a function of your data
+> Your user interface is a function of your data.
 
 This idea comes in many forms; another is "data driven interfaces". Basically, your UI should be a function of your data. Given X data, your UI should be Y. In computer science, this is referred to as *determinism*. Another name for this a *pure* system. Take the `sum` function. It is a *pure* function:
 

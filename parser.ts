@@ -33,10 +33,15 @@ export interface ItalicNode {
   text: string;
 }
 
-type EmbeddableNode = TextNode | InlineCodeNode | ItalicNode | LinkNode;
+export type EmbeddableNode = TextNode | InlineCodeNode | ItalicNode | LinkNode;
 
 export interface ParagraphNode {
   type: "paragraph-node";
+  children: EmbeddableNode[];
+}
+
+export interface BlockQuoteNode {
+  type: "block-quote-node";
   children: EmbeddableNode[];
 }
 
@@ -45,6 +50,7 @@ export type ParsedNode =
   | CodeBlockNode
   | InlineCodeNode
   | ItalicNode
+  | BlockQuoteNode
   | LinkNode
   | ParagraphNode;
 
@@ -94,6 +100,17 @@ export class Parser {
       type: "code-block-node",
       text: text.trimStart(),
       highlight,
+    };
+  }
+
+  private parseBlockQuoteNode(): BlockQuoteNode {
+    // consume >
+    this.consume();
+    const { children } = this.parseParagraphNode();
+
+    return {
+      type: "block-quote-node",
+      children,
     };
   }
 
@@ -152,10 +169,10 @@ export class Parser {
   }
 
   private parseInlineCodeNode(): InlineCodeNode {
-    this. consume();
+    this.consume();
     let text = "";
     while (!this.peek(0, "single-backtick")) {
-      text += sanitize(this.consume()!.value)
+      text += sanitize(this.consume()!.value);
     }
     this.consume(); // closing backtick
 
@@ -169,7 +186,15 @@ export class Parser {
     const nodes: EmbeddableNode[] = [];
 
     while (!this.peek(0, "cr")) {
-      if (this.peek(0, "text", "whitespace", "open-circle-bracket", "close-circle-bracket")) {
+      if (
+        this.peek(
+          0,
+          "text",
+          "whitespace",
+          "open-circle-bracket",
+          "close-circle-bracket",
+        )
+      ) {
         const token = this.consume()!;
         nodes.push({
           text: token.value,
@@ -208,6 +233,11 @@ export class Parser {
       if (this.peek(0, "h1")) {
         const headerNode = this.parseHeaderNode();
         this.#nodes.push(headerNode);
+      }
+
+      if (this.peek(0, "block-quote")) {
+        const node = this.parseBlockQuoteNode();
+        this.#nodes.push(node);
       }
 
       if (this.peek(0, "triple-backtick")) {

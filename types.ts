@@ -6,6 +6,7 @@ export type TokenType =
   | "whitespace"
   | "cr"
   | "asterisk"
+  | "block-quote"
   | "open-square-bracket"
   | "close-square-bracket"
   | "open-circle-bracket"

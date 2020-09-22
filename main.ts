@@ -21,4 +21,4 @@ const ast = new Parser(tokens).parse();
 
 const output = generate(ast);
 // console.log("\n\nOutput:\n", output);
-console.log(output)
+console.log(output);
