@@ -52,8 +52,6 @@ function log() {
     { type: "EOF", value: "" },
   ];
 
-  console.log(actual);
-
   assertEquals(actual, expected);
 });
 
