@@ -35,9 +35,6 @@ Deno.test("parses parseParagraphNode containing text", () => {
     { type: "cr", value: "" },
     { type: "EOF", value: "" },
   ]
-
-  const actual = new Parser(tokens).parse()
-
   const expected: ParsedNode[] = [
     { 
       type: "paragraph-node",
@@ -49,6 +46,67 @@ Deno.test("parses parseParagraphNode containing text", () => {
       ]
     }
   ]
+
+  const actual = new Parser(tokens).parse()
+
+  assertEquals(actual, expected)
+})
+
+Deno.test("parses paragraph node containing italics", () => {
+  const tokens: CharacterToken[] = [
+    { type: "text", value: " Welcome" },
+    { type: "text", value: " to" },
+    { type: "text", value: " the" },
+    { type: "asterisk", value: "*" },
+    { type: "text", value: "blog" },
+    { type: "asterisk", value: "*" },
+    { type: "cr", value: "" },
+    { type: "EOF", value: "" },
+  ]
+  const expected: ParsedNode[] = [
+    { 
+      type: "paragraph-node",
+      children: [
+        { type: "text-node", text: " Welcome" },
+        { type: "text-node", text: " to" },
+        { type: "text-node", text: " the" },
+        { type: "italic-node", text: "blog" },
+      ]
+    }
+  ]
+
+  const actual = new Parser(tokens).parse()
+
+  assertEquals(actual, expected)
+})
+
+Deno.test("parses paragraph node containing link", () => {
+  const tokens: CharacterToken[] = [
+    { type: "text", value: " Welcome" },
+    { type: "text", value: " to" },
+    { type: "text", value: " the" },
+    { type: "open-square-bracket", value: "[" },
+    { type: "text", value: "blog" },
+    { type: "close-square-bracket", value: "]" },
+    { type: "open-circle-bracket", value: "(" },
+    { type: "text", value: "https://lachlan-miller.me" },
+    { type: "close-circle-bracket", value: ")" },
+    { type: "cr", value: "" },
+    { type: "EOF", value: "" },
+  ]
+  const expected: ParsedNode[] = [
+    { 
+      type: "paragraph-node",
+      children: [
+        { type: "text-node", text: " Welcome" },
+        { type: "text-node", text: " to" },
+        { type: "text-node", text: " the" },
+        { type: "link-node", text: "blog", href: "https://lachlan-miller.me" },
+      ]
+    }
+  ]
+
+  const actual = new Parser(tokens).parse()
 
   assertEquals(actual, expected)
 })

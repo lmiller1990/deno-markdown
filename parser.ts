@@ -12,6 +12,12 @@ export interface CodeBlockNode {
   highlight?: string;
 }
 
+export interface LinkNode {
+  type: "link-node";
+  text: string;
+  href: string;
+}
+
 export interface InlineCodeNode {
   type: "inline-code-node";
   text: string;
@@ -22,15 +28,24 @@ export interface TextNode {
   text: string;
 }
 
+export interface ItalicNode {
+  type: "italic-node";
+  text: string;
+}
+
+type EmbeddableNode = TextNode | InlineCodeNode | ItalicNode | LinkNode
+
 export interface ParagraphNode {
   type: "paragraph-node";
-  children: Array<TextNode | InlineCodeNode>;
+  children: EmbeddableNode[];
 }
 
 export type ParsedNode =
   | HeaderNode
   | CodeBlockNode
   | InlineCodeNode
+  | ItalicNode
+  | LinkNode
   | ParagraphNode;
 
 export class Parser {
@@ -41,7 +56,7 @@ export class Parser {
     this.#tokens = tokens;
   }
 
-  private peek(...args: TokenType[]) {
+  private peek(offset: number, ...args: TokenType[]) {
     const contains = args.some((type) => this.#tokens[0].type === type);
     return contains;
   }
@@ -55,7 +70,7 @@ export class Parser {
     let text = "";
     let highlight: string | undefined = undefined;
     let firstPass = true;
-    while (!this.peek("triple-backtick")) {
+    while (!this.peek(0, "triple-backtick")) {
       const charToken = this.consume();
 
       if (firstPass && charToken?.value.match(/^\{.*\}$/)) {
@@ -78,7 +93,7 @@ export class Parser {
   private parseHeaderNode(): HeaderNode {
     this.consume();
     let text = "";
-    while (this.peek("text", "whitespace")) {
+    while (this.peek(0, "text", "whitespace")) {
       const charToken = this.consume();
       text += charToken!.value;
     }
@@ -90,10 +105,49 @@ export class Parser {
     };
   }
 
+  private parseItalicNode(): ItalicNode {
+    this.consume();
+    let text = "";
+    while (!this.peek(0, "asterisk")) {
+      text += this.consume()!.value;
+    }
+    this.consume(); // closing backtick
+
+    return {
+      type: "italic-node",
+      text,
+    };
+  }
+
+  private parseLinkNode(): LinkNode {
+    // consume leading [
+    this.consume();
+    let text = "";
+    while (!this.peek(0, "close-square-bracket")) {
+      text += this.consume()!.value;
+    }
+
+    this.consume() // consume trailing ]
+    this.consume() // consume trailing (
+
+    let href = "";
+    while (!this.peek(0, "close-circle-bracket")) {
+      href += this.consume()!.value;
+    }
+
+    this.consume() // trailing )
+
+    return {
+      type: "link-node",
+      text,
+      href
+    };
+  }
+
   private parseInlineCodeNode(): InlineCodeNode {
     this.consume();
     let text = "";
-    while (!this.peek("single-backtick")) {
+    while (!this.peek(0, "single-backtick")) {
       text += this.consume()!.value;
     }
     this.consume(); // closing backtick
@@ -105,17 +159,23 @@ export class Parser {
   }
 
   private parseParagraphNode(): ParagraphNode {
-    const nodes: Array<TextNode | InlineCodeNode> = [];
+    const nodes: EmbeddableNode[] = [];
 
-    while (!this.peek("cr")) {
-      if (this.peek("text", "whitespace")) {
+    while (!this.peek(0, "cr")) {
+      if (this.peek(0, "text", "whitespace")) {
         const token = this.consume()!;
         nodes.push({
           text: token.value,
           type: "text-node",
         });
-      } else if (this.peek("single-backtick")) {
+      } else if (this.peek(0, "single-backtick")) {
         const inline = this.parseInlineCodeNode();
+        nodes.push(inline);
+      } else if (this.peek(0, "asterisk") && !this.peek(1, "whitespace")) {
+        const inline = this.parseItalicNode();
+        nodes.push(inline);
+      } else if (this.peek(0, "open-square-bracket") && !this.peek(1, "whitespace")) {
+        const inline = this.parseLinkNode();
         nodes.push(inline);
       } else {
         throw Error(
@@ -132,26 +192,26 @@ export class Parser {
 
   parse(): ParsedNode[] {
     while (this.#tokens.length) {
-      if (this.peek("EOF")) {
+      if (this.peek(0, "EOF")) {
         return this.#nodes;
       }
 
-      if (this.peek("h1")) {
+      if (this.peek(0, "h1")) {
         const headerNode = this.parseHeaderNode();
         this.#nodes.push(headerNode);
       }
 
-      if (this.peek("triple-backtick")) {
+      if (this.peek(0, "triple-backtick")) {
         const codeBlockNode = this.parseCodeBlock();
         this.#nodes.push(codeBlockNode);
       }
 
-      if (this.peek("text", "single-backtick")) {
+      if (this.peek(0, "text", "single-backtick")) {
         const node = this.parseParagraphNode();
         this.#nodes.push(node);
       }
 
-      if (this.peek("whitespace", "cr")) {
+      if (this.peek(0, "whitespace", "cr")) {
         this.consume();
       }
     }
