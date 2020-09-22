@@ -12,15 +12,15 @@ export function generate(nodes: ParsedNode[]): string {
       text += "<p>";
       for (const word of node.children) {
         if (word.type === "text-node") {
-          text += `${word.text.trim()} `;
+          text += `${word.text} `;
         }
 
         if (word.type === "inline-code-node") {
-          text += `<code>${word.text} </code>`;
+          text += `<code>${word.text}</code>`;
         }
 
         if (word.type === "italic-node") {
-          text += `<em>${word.text.trim()}</em>`;
+          text += `<em>${word.text}</em>`;
         }
 
         if (word.type === "link-node") {
