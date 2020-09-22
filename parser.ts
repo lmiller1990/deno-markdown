@@ -33,7 +33,7 @@ export interface ItalicNode {
   text: string;
 }
 
-type EmbeddableNode = TextNode | InlineCodeNode | ItalicNode | LinkNode
+type EmbeddableNode = TextNode | InlineCodeNode | ItalicNode | LinkNode;
 
 export interface ParagraphNode {
   type: "paragraph-node";
@@ -127,20 +127,20 @@ export class Parser {
       text += this.consume()!.value;
     }
 
-    this.consume() // consume trailing ]
-    this.consume() // consume trailing (
+    this.consume(); // consume trailing ]
+    this.consume(); // consume trailing (
 
     let href = "";
     while (!this.peek(0, "close-circle-bracket")) {
       href += this.consume()!.value;
     }
 
-    this.consume() // trailing )
+    this.consume(); // trailing )
 
     return {
       type: "link-node",
       text,
-      href
+      href,
     };
   }
 
@@ -174,7 +174,9 @@ export class Parser {
       } else if (this.peek(0, "asterisk") && !this.peek(1, "whitespace")) {
         const inline = this.parseItalicNode();
         nodes.push(inline);
-      } else if (this.peek(0, "open-square-bracket") && !this.peek(1, "whitespace")) {
+      } else if (
+        this.peek(0, "open-square-bracket") && !this.peek(1, "whitespace")
+      ) {
         const inline = this.parseLinkNode();
         nodes.push(inline);
       } else {

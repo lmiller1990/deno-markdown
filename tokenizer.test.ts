@@ -1,34 +1,67 @@
 import {
   assertEquals,
 } from "https://deno.land/std/testing/asserts.ts";
-import { text } from "./data.ts"
-import { tokenize } from "./tokenizer.ts"
+import { tokenize } from "./tokenizer.ts";
 import { CharacterToken } from "./types.ts";
+import { test, xtest } from "./test-utils.ts";
 
-Deno.test("code block", () => {
+test("code block", () => {
   const actual = tokenize(
     `\`\`\`{1}
+function log() {
+  console.log('Hi!')
+}
 \`\`\`
-`)
+`,
+  );
 
   const expected: CharacterToken[] = [
     { type: "triple-backtick", value: "```" },
     { type: "text", value: "{1}" },
-    { type: "cr", value: "" },
+    {
+      type: "text",
+      value: "\nfunction",
+    },
+    { type: "text", value: " log" },
+    { type: "open-circle-bracket", value: "(" },
+    { type: "close-circle-bracket", value: ")" },
+    { type: "text", value: " {" },
+    {
+      type: "cr",
+      value: "\n",
+    },
+    { type: "text", value: " " },
+    { type: "text", value: " console.log" },
+    { type: "open-circle-bracket", value: "(" },
+    { type: "text", value: "'Hi!'" },
+    { type: "close-circle-bracket", value: ")" },
+    {
+      type: "text",
+      value: "\n}",
+    },
+    {
+      type: "cr",
+      value: "\n",
+    },
     { type: "triple-backtick", value: "```" },
-    { type: "cr", value: "" },
+    {
+      type: "cr",
+      value: "\n",
+    },
     { type: "cr", value: "" },
     { type: "EOF", value: "" },
-  ]
+  ];
 
-  assertEquals(actual, expected)
-})
+  console.log(actual);
 
-Deno.test("italics", () => {
-  const actual = tokenize(`This is *important*.`)
+  assertEquals(actual, expected);
+});
+
+xtest("italics", () => {
+  const actual = tokenize(`This is *important*.`);
 
   const expected: CharacterToken[] = [
-    { type: "text", value: "This", },
+    { type: "text", value: "This" },
     { type: "text", value: " is" },
     { type: "text", value: " " },
     { type: "asterisk", value: "*" },
@@ -37,16 +70,16 @@ Deno.test("italics", () => {
     { type: "text", value: "." },
     { type: "cr", value: "" },
     { type: "EOF", value: "" },
-  ]
+  ];
 
-  assertEquals(actual, expected)
-})
+  assertEquals(actual, expected);
+});
 
-Deno.test("link", () => {
-  const actual = tokenize(`[Link](https://lachlan-miller.me)`)
+xtest("link", () => {
+  const actual = tokenize(`[Link](https://lachlan-miller.me)`);
 
   const expected: CharacterToken[] = [
-    { type: "open-square-bracket", value: "[", },
+    { type: "open-square-bracket", value: "[" },
     { type: "text", value: "Link" },
     { type: "close-square-bracket", value: "]" },
     { type: "open-circle-bracket", value: "(" },
@@ -54,7 +87,7 @@ Deno.test("link", () => {
     { type: "close-circle-bracket", value: ")" },
     { type: "cr", value: "" },
     { type: "EOF", value: "" },
-  ]
+  ];
 
-  assertEquals(actual, expected)
-})
+  assertEquals(actual, expected);
+});

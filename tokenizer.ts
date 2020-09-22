@@ -54,7 +54,7 @@ export function tokenize(text: string) {
     const tokenType = matchToken(word);
     const token: CharacterToken = {
       type: tokenType.type,
-      value: word === "\n" ? "" : word,
+      value: word, // word === "\n" ? "" : word,
     };
     charTokens.push(token);
   }

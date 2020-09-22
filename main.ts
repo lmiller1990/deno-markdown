@@ -11,7 +11,7 @@ let content = "";
 for await (let line of readStringDelim(fileReader, "\n")) {
   content += line + "\n";
 }
-fileReader.close()
+fileReader.close();
 
 const tokens = tokenize(content);
 console.log("\n\nTokens:\n", tokens);
