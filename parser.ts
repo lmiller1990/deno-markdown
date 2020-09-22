@@ -88,6 +88,8 @@ export class Parser {
       if (firstPass && charToken?.value.match(/^\{.*\}$/)) {
         // it is the highlight lines. eg ```{1,2-3}
         highlight = charToken.value.trim();
+      } else if (["html", "js", "ts"].some(x => charToken?.value === x)) {
+        // not support syntax highlight at the moment.
       } else {
         // it is some code
         text += sanitize(charToken!.value);
@@ -99,7 +101,7 @@ export class Parser {
     return {
       type: "code-block-node",
       text: text.trimStart(),
-      highlight,
+      highlight: undefined // not supporting this for now,
     };
   }
 

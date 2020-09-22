@@ -1,21 +1,18 @@
 <link rel="stylesheet" href="index.css">
 <h1> Patterns for Testing Props</h1><p>
 In  this  section  we  explore   <code>props</code>,  and  the  kinds  of  tests  you  might  want  to  consider  writing.  This  leads  into  a  much  more  fundamental  and  important  topic;  drawing  a  clear  line  between  business  logic  and  UI,  also  known  as   <em>separation of concerns</em>,  and  how  your  tests  can  help  make  this  distinction  clear. </p><p>
-Consider  one  of  the  big  ideas  behind  frameworks  like  Vue  and  React: </p><blockquote> UI  is  a  function  of  your  data </blockquote><p>
-This  idea  comes  in  many  forms;  another  is  "data  driven  interfaces".  Basically,  your  UI  should  be  a  function  of  your  data.  Given  X  data,  your  UI  should  be  Y.  In  computer  science,  this  is  referred  to  as   <em>determinism</em>.  Another  name  for  this  a   <em>pure</em> system.  Take  the   <code>sum</code> function.  It  is  a   <em>pure</em> function: </p><pre data-line="undefined"><code>js
-function sum(a, b) {
+Consider  one  of  the  big  ideas  behind  frameworks  like  Vue  and  React: </p><blockquote> Your  user  interface  is  a  function  of  your  data. </blockquote><p>
+This  idea  comes  in  many  forms;  another  is  "data  driven  interfaces".  Basically,  your  UI  should  be  a  function  of  your  data.  Given  X  data,  your  UI  should  be  Y.  In  computer  science,  this  is  referred  to  as   <em>determinism</em>.  Another  name  for  this  a   <em>pure</em> system.  Take  the   <code>sum</code> function.  It  is  a   <em>pure</em> function: </p><pre data-line="undefined"><code>function sum(a, b) {
   return a + b
 }
 </pre></code><p>
-Given  the  same  value  for   <code>a</code> and   <code>b</code>,  you  always  get  same  result.  The  result  is  pre-determined.  It's   <em>deterministic</em>.  An  example  of  an  impure  function  would  be  this: </p><pre data-line="undefined"><code>js
-async function fetchUserData(userId) {
+Given  the  same  value  for   <code>a</code> and   <code>b</code>,  you  always  get  same  result.  The  result  is  pre-determined.  It's   <em>deterministic</em>.  An  example  of  an  impure  function  would  be  this: </p><pre data-line="undefined"><code>async function fetchUserData(userId) {
   return axios.get(`/api/users/${userId}`)
 }
 </pre></code><p>
 This  is  impure  because  it  relies  on  an  external  resource:  depending  on  what  is  in  the  database,  we  may  get  a  different  result.  It's   <em>unpredictable</em>. </p><p>
 So,  how  does  this  relate  to   <code>props</code>?  Well,  if  you  think  of  a  component  as  a  function  and  the   <code>props</code> as  the  arguments,  you'll  realize  that  given  the  same   <code>props</code>,  your  UI  will  be  deterministic,  and  since  you  control  the   <code>props</code>,  it's  easy  to  test.   </p><h1> The Basics</h1><p>
-You  can  declare  props  in  a  few  ways.  We  will  work  with  the   <code>&lt;Message&gt;</code> component  in  this  section. </p><pre data-line="undefined"><code>html
-&lt;template&gt;
+You  can  declare  props  in  a  few  ways.  We  will  work  with  the   <code>&lt;Message&gt;</code> component  in  this  section. </p><pre data-line="undefined"><code>&lt;template&gt;
   &lt;div :class="variant"&gt;Message&lt;/div&gt;
 &lt;/template&gt;
 
@@ -27,16 +24,14 @@ export default {
 }
 &lt;/script&gt;
 </pre></code><p>
-I'd  recommend  avoiding  the  array  of  strings  syntax.  Using  the  object  syntax  makes  it  more  understandable.  If  you  are  using  TypeScript,  even  better  -  create  a  type,  for  example   <code>type Variant = 'success' | 'warning' | 'error'</code>.   </p><pre data-line="undefined"><code>js
-props: {
+I'd  recommend  avoiding  the  array  of  strings  syntax.  Using  the  object  syntax  makes  it  more  understandable.  If  you  are  using  TypeScript,  even  better  -  create  a  type,  for  example   <code>type Variant = 'success' | 'warning' | 'error'</code>.   </p><pre data-line="undefined"><code>props: {
   variant: {
     type: String,
     required: true
   }
 }
 </pre></code><p>
-Let's  start  writing  a  test.  We've  specified  the   <code>variant</code> prop  is   <code>required</code>.  We  should  test  what  happens  if  they  don't  provide  it,  too,  though,  just  be  sure.  Remember,  we  want  to  test  inputs  and  outputs  -  the   <code>variant</code> prop  is  our  input,  and  what  is  renders  is  the  output.  The  first  test  is  easy: </p><pre data-line="undefined"><code>js
-import { mount } from '@vue/test-utils'
+Let's  start  writing  a  test.  We've  specified  the   <code>variant</code> prop  is   <code>required</code>.  We  should  test  what  happens  if  they  don't  provide  it,  too,  though,  just  be  sure.  Remember,  we  want  to  test  inputs  and  outputs  -  the   <code>variant</code> prop  is  our  input,  and  what  is  renders  is  the  output.  The  first  test  is  easy: </p><pre data-line="undefined"><code>import { mount } from '@vue/test-utils'
 import Message from './Message.vue'
 
 describe('Message', () =&gt; {
@@ -52,8 +47,7 @@ describe('Message', () =&gt; {
 })
 </pre></code><p>
 The  next  is  a  little  tricky  -  there  is  no  real  graceful  way  to  fail,  since  we  don't  have  a   <code>default</code> value  for  the   <code>variant</code> prop.  What  we  really  want  to  do  is  raise  an  error.  For  this  we  can  use  a   <code>validator</code>. </p><h1> Adding a Validator</h1><p>
-Let's  update  the   <code>variant</code> prop  to  have  a  simple  validator: </p><pre data-line="undefined"><code>html
-props: {
+Let's  update  the   <code>variant</code> prop  to  have  a  simple  validator: </p><pre data-line="undefined"><code>props: {
   variant: {
     type: String,
     required: true,
@@ -68,8 +62,7 @@ props: {
 }
 </pre></code><p>
 Now  we  will  get  an  error  if  an  invalid  prop  is  passed.  How  do  we  test  this?  If  we  want  to  cover  all  the  possibilities,  we  need  4  tests;  one  for  each   <code>variant</code> type,  and  one  for  an  invalid  type.  Unlike  our  previous  test,  where  we  asserted  against  the   <code>class</code>,  this  one  has  little  to  do  with  our  UI  -  we  already  have  a  test  checking  if  the   <code>variant</code> prop  is  bound  to  the   <code>&lt;div&gt;</code> correctly.   </p><blockquote> TIP:  Test  props  validators  in  isolation.  The  test  run  faster,  and  since  validators  are  generally  pure  functions,  they  are  easy  to  test. </blockquote><p>
-First  we  need  to  refactor   <code>&lt;Message&gt;</code> a  little  to  separate  the  validator  from  the  component: </p><pre data-line="undefined"><code>html
-&lt;template&gt;
+First  we  need  to  refactor   <code>&lt;Message&gt;</code> a  little  to  separate  the  validator  from  the  component: </p><pre data-line="undefined"><code>&lt;template&gt;
   &lt;div :class="variant"&gt;Message&lt;/div&gt;
 &lt;/template&gt;
 
@@ -93,8 +86,7 @@ export default {
 }
 &lt;/script&gt;
 </pre></code><p>
-Great,   <code>validateVariant</code> is  now  exported  and  easily  testable: </p><pre data-line="undefined"><code>js
-import { mount } from '@vue/test-utils'
+Great,   <code>validateVariant</code> is  now  exported  and  easily  testable: </p><pre data-line="undefined"><code>import { mount } from '@vue/test-utils'
 import Message, { validateVariant } from './Message.vue'
 
 describe('Message', () =&gt; {
@@ -115,8 +107,7 @@ This  might  not  seem  significant,  but  it's  actually  a  big  improvement. 
 You  may  be  wondering;  are  we   <em>really</em> testing  the   <code>variant</code> prop  here?  The  answer  is  no  -  not  really!  We  added  a  test  for  our  business  logic  -  our  organization  only  supports  three  different  button  types.  There  is  an  important  distinction  here.  The  first  tests,  where  we  use   <code>classes()</code>,  is  a  UI  test;  we  are  verifying  that  the  UI  layer  is  working  correctly.  The  second  test,  for   <code>variant</code>,  is  business  logic.  This  concept  is  known  as   <em>separation of concerns</em>.  We  will  revisit  this  throughout  the  book.   </p><p>
 If  you  want  to  know  if  something  is  part  of  the  UI  or  business  logic,  ask  yourself  this:  "if  I  switched  to  React,  would  I  be  able  to  re-use  this  test?".  In  this  case,  you  could  absolutely  reuse  the  validator  test;  this  is  tied  to  your  business  logic.  The   <code>classes()</code> test  would  have  to  be  rewritten,  because  React  and  it's  testing  libraries  have  a  different  API.  Ideally,  you  don't  want  your  business  logic  to  be  coupled  to  your  framework  of  choice;  frameworks  come  and  go,  but  it's  unlikely  the  problems  your  business  is  solving  will  change.   </p><p>
 I  have  seen  poor  separation  of  concerns  costs  companies  tens  of  thousands  of  dollars;  they  get  to  a  point  where  adding  new  features  is  risky  and  slow,  because  their  core  business  problem  is  too  tightly  coupled  to  the  UI.  Understanding  the  difference  between  the  two,  and  how  to  correctly  structure  your  applications  is  the  difference  good  engineers  and  great  engineers. </p><h1> Another Example</h1><p>
-Let's  see  another  example  of  testing  props.  This  examples  uses  the   <code>&lt;Navbar&gt;</code> component,  which  looks  like  this: </p><pre data-line="undefined"><code>html
-&lt;template&gt;
+Let's  see  another  example  of  testing  props.  This  examples  uses  the   <code>&lt;Navbar&gt;</code> component,  which  looks  like  this: </p><pre data-line="undefined"><code>&lt;template&gt;
   &lt;button v-if="authenticated"&gt;Logout&lt;/button&gt;
   &lt;button v-if="!authenticated"&gt;Login&lt;/button&gt;
 &lt;/template&gt;
@@ -132,8 +123,7 @@ export default {
 }
 &lt;/script&gt;
 </pre></code><p>
-Before  even  seeing  the  test,  it  is  clear  we  need   <em>two</em> tests  to  cover  all  the  use  cases.  The  reason  this  is  immediately  clear  is  the   <code>authenticated</code> prop  is  a   <code>Boolean</code>,  which  only  has  two  possible  values.  The  test  isn't  especially  interesting   ( but  the  discussion  that  follows  is! ) : </p><pre data-line="undefined"><code>js
-describe('Navbar', () =&gt; {
+Before  even  seeing  the  test,  it  is  clear  we  need   <em>two</em> tests  to  cover  all  the  use  cases.  The  reason  this  is  immediately  clear  is  the   <code>authenticated</code> prop  is  a   <code>Boolean</code>,  which  only  has  two  possible  values.  The  test  isn't  especially  interesting   ( but  the  discussion  that  follows  is! ) : </p><pre data-line="undefined"><code>describe('Navbar', () =&gt; {
   it('shows logout when authenticated is true', () =&gt; {
     const wrapper = mount(Navbar, {
       props: {
@@ -152,8 +142,7 @@ describe('Navbar', () =&gt; {
 })
 </pre></code><p>
 The  only  thing  that  changes  based  on  the  value  of   <code>authenticated</code> is  the  button  text.  Since  the   <code>default</code> value  is   <code>false</code>,  we  don't  need  to  pass  it  as  in   <code>props</code> in  the  second  test. </p><p>
-What  if  we  refactored  this  using  the  factory  pattern? </p><pre data-line="undefined"><code>js
-describe('Navbar', () =&gt; {
+What  if  we  refactored  this  using  the  factory  pattern? </p><pre data-line="undefined"><code>describe('Navbar', () =&gt; {
   function navbarFactory(props) {
     return mount(Navbar, {
       props
@@ -172,8 +161,7 @@ describe('Navbar', () =&gt; {
 })
 </pre></code><p>
 I  like  this  one  better.  I  usually  don't  leave  any  new  lines  in  my  tests  that  only  have  two  lines,  but  that  is  just  my  personal  approach.   </p><p>
-Although  we  technically  have  covered  all  the  cases,  I  like  to  add  the  third  case:  where   <code>authenticated</code> is  explicitly  set  to   <code>false</code>. </p><pre data-line="undefined"><code>js
-describe('Navbar', () =&gt; {
+Although  we  technically  have  covered  all  the  cases,  I  like  to  add  the  third  case:  where   <code>authenticated</code> is  explicitly  set  to   <code>false</code>. </p><pre data-line="undefined"><code>describe('Navbar', () =&gt; {
   function navbarFactory(props) {
     return mount(Navbar, {
       props
@@ -207,7 +195,7 @@ export default {
 }
 &lt;/script&gt;
 </pre></code><p>
-Everything  still  passes!  Our  tests  are  doing  what  they  are  supposed  to  be.  Or  are  they?  What  if  we  decide  we  would  like  to  use  a   <code>&lt;a&gt;</code> tag  instead  of  a   <code>&lt;button&gt;</code>? </p><pre data-line="undefined"><code>html {2}
+Everything  still  passes!  Our  tests  are  doing  what  they  are  supposed  to  be.  Or  are  they?  What  if  we  decide  we  would  like  to  use  a   <code>&lt;a&gt;</code> tag  instead  of  a   <code>&lt;button&gt;</code>? </p><pre data-line="undefined"><code>{2}
 &lt;template&gt;
   &lt;a&gt;{{ `${authenticated ? 'Logout' : 'Login'}` }}&lt;/a&gt;
 &lt;/template&gt;
@@ -223,7 +211,7 @@ export default {
 }
 &lt;/script&gt;
 </pre></code><p>
-Obviously  in  a  real  system  a   <code>href</code> property  would  be  required  and  change  depending  on   <code>authenticated</code>,  but  that  isn't  what  we  are  focusing  on  here.  The  test  are  now   <em>failing</em>.  The  behavior  hasn't  really  changed,  though,  has  it?  Some  people  might  argue  it   <em>has</em> -  buttons  normally  don't  take  you  to  other  pages,  but  anchor  tags  do.  My  personal  preference  here  would  be  to  change  my  test  as  follows: </p><pre data-line="undefined"><code>js {3}
+Obviously  in  a  real  system  a   <code>href</code> property  would  be  required  and  change  depending  on   <code>authenticated</code>,  but  that  isn't  what  we  are  focusing  on  here.  The  test  are  now   <em>failing</em>.  The  behavior  hasn't  really  changed,  though,  has  it?  Some  people  might  argue  it   <em>has</em> -  buttons  normally  don't  take  you  to  other  pages,  but  anchor  tags  do.  My  personal  preference  here  would  be  to  change  my  test  as  follows: </p><pre data-line="undefined"><code>{3}
 it('shows login authenticated is true', () =&gt; {
   const wrapper = navbarFactory({ authenticated: true })
   expect(wrapper.html()).toContain('Logout')
