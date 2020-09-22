@@ -5,65 +5,9 @@ import { text } from "./data.ts"
 import { tokenize } from "./tokenizer.ts"
 import { CharacterToken } from "./types.ts";
 
-Deno.test("tokenize", () => {
-  const actual = tokenize(text)
-
-  const expected: CharacterToken[] = [
-    { type: "h1", value: "#" },
-    { type: "text", value: " Title" },
-    { type: "cr", value: "" },
-    { type: "text", value: "\nWelcome" },
-    { type: "text", value: " to" },
-    { type: "text", value: " my" },
-    { type: "text", value: " blog." },
-    { type: "text", value: " I" },
-    { type: "text", value: " wrote" },
-    { type: "text", value: " my" },
-    { type: "text", value: " own" },
-    { type: "text", value: " " },
-    { type: "single-backtick", value: "`" },
-    { type: "text", value: "markdown" },
-    { type: "single-backtick", value: "`" },
-    { type: "text", value: " to" },
-    { type: "text", value: " " },
-    { type: "single-backtick", value: "`" },
-    { type: "text", value: "html" },
-    { type: "single-backtick", value: "`" },
-    { type: "text", value: " compiler." },
-    { type: "cr", value: "" },
-    { type: "text", value: "\nIt" },
-    { type: "text", value: " even" },
-    { type: "text", value: " supports" },
-    { type: "text", value: " code" },
-    { type: "text", value: " blocks:" },
-    { type: "cr", value: "" },
-    { type: "triple-backtick", value: "```" },
-    { type: "text", value: "{2,5-10,15}" },
-    { type: "text", value: "\nfunction()" },
-    { type: "text", value: " {" },
-    { type: "cr", value: "" },
-    { type: "text", value: " " },
-    { type: "text", value: " return" },
-    { type: "text", value: " 'code" },
-    { type: "text", value: " block';" },
-    { type: "text", value: "\n}" },
-    { type: "cr", value: "" },
-    { type: "triple-backtick", value: "```" },
-    { type: "cr", value: "" },
-    { type: "text", value: "\nSee" },
-    { type: "text", value: " you" },
-    { type: "text", value: " next" },
-    { type: "text", value: " time!!" },
-    { type: "cr", value: "" },
-    { type: "EOF", value: "" }
-  ]
-
-  assertEquals(actual, expected)
-})
-
-Deno.test("tokenize", () => {
+Deno.test("code block", () => {
   const actual = tokenize(
-`\`\`\`{1}
+    `\`\`\`{1}
 \`\`\`
 `)
 
@@ -73,6 +17,41 @@ Deno.test("tokenize", () => {
     { type: "cr", value: "" },
     { type: "triple-backtick", value: "```" },
     { type: "cr", value: "" },
+    { type: "cr", value: "" },
+    { type: "EOF", value: "" },
+  ]
+
+  assertEquals(actual, expected)
+})
+
+Deno.test("italics", () => {
+  const actual = tokenize(`This is *important*.`)
+
+  const expected: CharacterToken[] = [
+    { type: "text", value: "This", },
+    { type: "text", value: " is" },
+    { type: "text", value: " " },
+    { type: "asterisk", value: "*" },
+    { type: "text", value: "important" },
+    { type: "asterisk", value: "*" },
+    { type: "text", value: "." },
+    { type: "cr", value: "" },
+    { type: "EOF", value: "" },
+  ]
+
+  assertEquals(actual, expected)
+})
+
+Deno.test("link", () => {
+  const actual = tokenize(`[Link](https://lachlan-miller.me)`)
+
+  const expected: CharacterToken[] = [
+    { type: "open-square-bracket", value: "[", },
+    { type: "text", value: "Link" },
+    { type: "close-square-bracket", value: "]" },
+    { type: "open-circle-bracket", value: "(" },
+    { type: "text", value: "https://lachlan-miller.me" },
+    { type: "close-circle-bracket", value: ")" },
     { type: "cr", value: "" },
     { type: "EOF", value: "" },
   ]

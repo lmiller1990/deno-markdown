@@ -41,16 +41,16 @@ export class Parser {
     this.#tokens = tokens;
   }
 
-  peek(...args: TokenType[]) {
+  private peek(...args: TokenType[]) {
     const contains = args.some((type) => this.#tokens[0].type === type);
     return contains;
   }
 
-  consume() {
+  private consume() {
     return this.#tokens.shift();
   }
 
-  parseCodeBlock(): CodeBlockNode {
+  private parseCodeBlock(): CodeBlockNode {
     this.consume();
     let text = "";
     let highlight: string | undefined = undefined;
@@ -75,7 +75,7 @@ export class Parser {
     };
   }
 
-  parseHeaderNode(): HeaderNode {
+  private parseHeaderNode(): HeaderNode {
     this.consume();
     let text = "";
     while (this.peek("text", "whitespace")) {
@@ -90,7 +90,7 @@ export class Parser {
     };
   }
 
-  parseInlineCodeNode(): InlineCodeNode {
+  private parseInlineCodeNode(): InlineCodeNode {
     this.consume();
     let text = "";
     while (!this.peek("single-backtick")) {
@@ -104,7 +104,7 @@ export class Parser {
     };
   }
 
-  parseParagraphNode(): ParagraphNode {
+  private parseParagraphNode(): ParagraphNode {
     const nodes: Array<TextNode | InlineCodeNode> = [];
 
     while (!this.peek("cr")) {
@@ -130,9 +130,8 @@ export class Parser {
     };
   }
 
-  parse() {
+  parse(): ParsedNode[] {
     while (this.#tokens.length) {
-      // const token = tokens.shift()
       if (this.peek("EOF")) {
         return this.#nodes;
       }

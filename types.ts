@@ -5,6 +5,11 @@ export type TokenType =
   | "single-backtick"
   | "whitespace"
   | "cr"
+  | "asterisk"
+  | "open-square-bracket"
+  | "close-square-bracket"
+  | "open-circle-bracket"
+  | "close-circle-bracket"
   | "EOF";
 
 export interface CharacterToken {
