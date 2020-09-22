@@ -48,6 +48,12 @@ export type ParsedNode =
   | LinkNode
   | ParagraphNode;
 
+function sanitize(code: string) {
+  return code
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
 export class Parser {
   #tokens: CharacterToken[] = [];
   #nodes: ParsedNode[] = [];
@@ -77,7 +83,8 @@ export class Parser {
         // it is the highlight lines. eg ```{1,2-3}
         highlight = charToken.value.trim();
       } else {
-        text += charToken!.value;
+        // it is some code
+        text += sanitize(charToken!.value);
       }
       firstPass = false;
     }
@@ -145,10 +152,10 @@ export class Parser {
   }
 
   private parseInlineCodeNode(): InlineCodeNode {
-    this.consume();
+    this. consume();
     let text = "";
     while (!this.peek(0, "single-backtick")) {
-      text += this.consume()!.value;
+      text += sanitize(this.consume()!.value)
     }
     this.consume(); // closing backtick
 
@@ -162,7 +169,7 @@ export class Parser {
     const nodes: EmbeddableNode[] = [];
 
     while (!this.peek(0, "cr")) {
-      if (this.peek(0, "text", "whitespace")) {
+      if (this.peek(0, "text", "whitespace", "open-circle-bracket", "close-circle-bracket")) {
         const token = this.consume()!;
         nodes.push({
           text: token.value,

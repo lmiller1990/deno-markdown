@@ -1,8 +1,9 @@
 import { CharacterToken } from "./types.ts";
 import { ParsedNode, Parser } from "./parser.ts";
 import { assertEquals } from "https://deno.land/std@0.69.0/testing/asserts.ts";
+import { test } from './test-utils.ts'
 
-Deno.test("parses header node", () => {
+test("parses header node", () => {
   const tokens: CharacterToken[] = [
     { type: "h1", value: "" },
     { type: "text", value: " Welcome" },
@@ -26,7 +27,7 @@ Deno.test("parses header node", () => {
   assertEquals(actual, expected);
 });
 
-Deno.test("parses parseParagraphNode containing text", () => {
+test("parses parseParagraphNode containing text", () => {
   const tokens: CharacterToken[] = [
     { type: "text", value: " Welcome" },
     { type: "text", value: " to" },
@@ -52,7 +53,7 @@ Deno.test("parses parseParagraphNode containing text", () => {
   assertEquals(actual, expected);
 });
 
-Deno.test("parses paragraph node containing italics", () => {
+test("parses paragraph node containing italics", () => {
   const tokens: CharacterToken[] = [
     { type: "text", value: " Welcome" },
     { type: "text", value: " to" },
@@ -80,7 +81,7 @@ Deno.test("parses paragraph node containing italics", () => {
   assertEquals(actual, expected);
 });
 
-Deno.test("parses paragraph node containing link", () => {
+test("parses paragraph node containing link", () => {
   const tokens: CharacterToken[] = [
     { type: "text", value: " Welcome" },
     { type: "text", value: " to" },
@@ -104,6 +105,51 @@ Deno.test("parses paragraph node containing link", () => {
         { type: "link-node", text: "blog", href: "https://lachlan-miller.me" },
       ],
     },
+  ];
+
+  const actual = new Parser(tokens).parse();
+
+  assertEquals(actual, expected);
+});
+
+test("replaces < and > with HTML safe alternatives in inline code", () => {
+  const tokens: CharacterToken[] = [
+    { type: "single-backtick", value: "`" },
+    { type: "text", value: "<button>" },
+    { type: "single-backtick", value: "`" },
+    { type: "cr", value: "" },
+    { type: "EOF", value: "" },
+  ];
+  const expected: ParsedNode[] = [
+    {
+      type: "paragraph-node",
+      children: [
+        { type: "inline-code-node", text: "&lt;button&gt;" },
+      ],
+    },
+  ];
+
+  const actual = new Parser(tokens).parse();
+
+  assertEquals(actual, expected);
+});
+
+
+test("replaces < and > with HTML safe alternatives in code block", () => {
+  const tokens: CharacterToken[] = [
+    { type: "triple-backtick", value: "```" },
+    { type: "text", value: "<button>" },
+    { type: "cr", value: "\n" },
+    { type: "triple-backtick", value: "```" },
+    { type: "cr", value: "" },
+    { type: "EOF", value: "" },
+  ];
+  const expected: ParsedNode[] = [
+    {
+      highlight: undefined,
+      type: "code-block-node",
+      text: "&lt;button&gt;\n"
+    }
   ];
 
   const actual = new Parser(tokens).parse();
